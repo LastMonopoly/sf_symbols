@@ -7,18 +7,6 @@ class SfSymbols {
   Future<String?> getPlatformVersion() {
     return SfSymbolsPlatform.instance.getPlatformVersion();
   }
-
-  Future<int?> init() {
-    return SfSymbolsPlatform.instance.init();
-  }
-
-  Future<Size> render(String url, int textureID) {
-    return SfSymbolsPlatform.instance.render(textureID);
-  }
-
-  Future dispose(int textureID) {
-    return SfSymbolsPlatform.instance.dispose(textureID);
-  }
 }
 
 class SfSymbol extends StatefulWidget {
@@ -35,7 +23,29 @@ class _SfSymbolState extends State<SfSymbol> {
   @override
   void initState() {
     super.initState();
-    initPlatformState();
+    // initPlatformState();
+    initSymbol();
+  }
+
+  int? symbolTextureId;
+  Size? symbolSize;
+
+  initSymbol() async {
+    symbolTextureId = await SfSymbolsPlatform.instance.init();
+    print(symbolTextureId);
+    if (symbolTextureId != null) {
+      symbolSize = await SfSymbolsPlatform.instance.render(symbolTextureId!);
+      print(symbolSize);
+      if (symbolSize != null && mounted) setState(() {});
+    }
+  }
+
+  @override
+  dispose() {
+    if (symbolTextureId != null) {
+      SfSymbolsPlatform.instance.dispose(symbolTextureId!);
+    }
+    super.dispose();
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
@@ -62,6 +72,13 @@ class _SfSymbolState extends State<SfSymbol> {
 
   @override
   Widget build(BuildContext context) {
-    return Text('Running on: $_platformVersion\n');
+    if (symbolTextureId != null && symbolSize != null) {
+      return AspectRatio(
+        aspectRatio: symbolSize!.aspectRatio,
+        child: Texture(textureId: symbolTextureId!),
+      );
+    } else {
+      return const SizedBox();
+    }
   }
 }

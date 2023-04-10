@@ -16,12 +16,24 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData.dark(useMaterial3: true),
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Plugin example app'),
+          title: const Text('SF Symbols example'),
         ),
-        body: const Center(
-          child: SfSymbol(),
+        body: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            setState(() {});
+          },
+          child: Center(
+            child: SizedBox(
+              width: 100,
+              child: SfSymbol(
+                key: UniqueKey(),
+              ),
+            ),
+          ),
         ),
       ),
     );
