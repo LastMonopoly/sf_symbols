@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'sf_symbols_method_channel.dart';
@@ -26,4 +28,10 @@ abstract class SfSymbolsPlatform extends PlatformInterface {
   Future<String?> getPlatformVersion() {
     throw UnimplementedError('platformVersion() has not been implemented.');
   }
+
+  Future<int?> init() async => throw UnimplementedError();
+
+  Future<Size> render(int textureId) async => throw UnimplementedError();
+
+  Future dispose(int textureId) async => throw UnimplementedError();
 }

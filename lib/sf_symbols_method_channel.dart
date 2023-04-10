@@ -11,7 +11,34 @@ class MethodChannelSfSymbols extends SfSymbolsPlatform {
 
   @override
   Future<String?> getPlatformVersion() async {
-    final version = await methodChannel.invokeMethod<String>('getPlatformVersion');
+    final version =
+        await methodChannel.invokeMethod<String>('getPlatformVersion');
     return version;
+  }
+
+  static const idKey = "textureId";
+
+  @override
+  Future<int?> init() async {
+    final result = await methodChannel.invokeMethod('init');
+    return result[idKey];
+  }
+
+  @override
+  Future<Size> render(int textureId) async {
+    final size = await methodChannel.invokeMethod('render', {
+      idKey: textureId,
+    });
+    return Size(
+      size['width']?.toDouble() ?? 0,
+      size['height']?.toDouble() ?? 0,
+    );
+  }
+
+  @override
+  Future dispose(int textureId) async {
+    await methodChannel.invokeMethod('dispose', {
+      idKey: textureId,
+    });
   }
 }
