@@ -31,6 +31,9 @@ class _MyAppState extends State<MyApp> {
               width: 100,
               child: SfSymbol(
                 key: UniqueKey(),
+                weight: FontWeight.w900,
+                color: const Color(0xFF00acc1),
+                name: 'pencil.circle',
               ),
             ),
           ),

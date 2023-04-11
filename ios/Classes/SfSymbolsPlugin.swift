@@ -17,20 +17,34 @@ public class SfSymbolsPlugin: NSObject, FlutterPlugin {
 
         switch call.method {
         case "init":
-            let texture = SfSymbolTexture(name: "ChatGPT")
-            let id = Self.textureRegistry?.register(texture)
-            guard let id = id else {
-                result([idKey: -1])
+            guard let name = (call.arguments as? [String: Any])?["name"] as? String else {
+                result(FlutterError(code: "INVALID_ARGUMENT", message: "name is invalid", details: nil))
+                return
+            }
+            guard let weight = (call.arguments as? [String: Any])?["weight"] as? Int else {
+                result(FlutterError(code: "INVALID_ARGUMENT", message: "weight is invalid", details: nil))
                 return
             }
 
-            print("id is \(id)")
-            print("num of textures \(Self.textureMap.count)")
+            guard let hexColor = (call.arguments as? [String: Any])?["color"] as? String,
+                  let color = UIColor(hex: hexColor)
+            else {
+                result(FlutterError(code: "INVALID_ARGUMENT", message: "color is invalid", details: nil))
+                return
+            }
+
+            let texture = SfSymbolTexture(name: name, weight: weight, color: color)
+            let id = Self.textureRegistry?.register(texture)
+            guard let id = id else {
+                result(nil)
+                return
+            }
+
             Self.textureMap[id] = texture
             result([idKey: id])
 
         case "render":
-            guard let textureId = (call.arguments as? NSDictionary)?[idKey] as? Int64 else {
+            guard let textureId = (call.arguments as? [String: Any])?[idKey] as? Int64 else {
                 result(FlutterError(code: "INVALID_ARGUMENT", message: "url is null or textureID is null", details: nil))
                 return
             }
@@ -42,7 +56,7 @@ public class SfSymbolsPlugin: NSObject, FlutterPlugin {
             result(size)
 
         case "dispose":
-            guard let textureId = (call.arguments as? NSDictionary)?[idKey] as? Int64 else {
+            guard let textureId = (call.arguments as? [String: Any])?[idKey] as? Int64 else {
                 result(FlutterError(code: "INVALID_ARGUMENT", message: "textureID is null", details: nil))
                 return
             }
@@ -60,14 +74,14 @@ class SfSymbolTexture: NSObject, FlutterTexture {
     let image: UIImage?
     var pixelBuffer: CVPixelBuffer?
 
-    init(name: String) {
+    init(name: String, weight: Int, color: UIColor) {
         if #available(iOS 13.0, *) {
             let config = UIImage.SymbolConfiguration(
                 pointSize: 100,
-                weight: UIImage.SymbolWeight(rawValue: 9) ?? .regular)
+                weight: UIImage.SymbolWeight(rawValue: weight) ?? .regular)
 
-            self.image = UIImage(systemName: "airplane", withConfiguration: config)?
-                .withTintColor(.magenta)
+            self.image = UIImage(systemName: name, withConfiguration: config)?
+                .withTintColor(color)
         } else {
             self.image = nil
         }
@@ -77,8 +91,6 @@ class SfSymbolTexture: NSObject, FlutterTexture {
         guard let uiImage = image else { return nil }
 
         self.pixelBuffer = uiImage.convertToBuffer()
-        print(uiImage.size)
-        print(uiImage.scale)
 
         return uiImage.size
     }
@@ -140,5 +152,33 @@ extension UIImage {
         CVPixelBufferUnlockBaseAddress(pixelBuffer!, CVPixelBufferLockFlags(rawValue: 0))
 
         return pixelBuffer
+    }
+}
+
+public extension UIColor {
+    convenience init?(hex: String) {
+        let r, g, b, a: CGFloat
+
+        if hex.hasPrefix("#") {
+            let start = hex.index(hex.startIndex, offsetBy: 1)
+            let hexColor = String(hex[start...])
+
+            if hexColor.count == 8 {
+                let scanner = Scanner(string: hexColor)
+                var hexNumber: UInt64 = 0
+
+                if scanner.scanHexInt64(&hexNumber) {
+                    r = CGFloat((hexNumber & 0xff000000) >> 24) / 255
+                    g = CGFloat((hexNumber & 0x00ff0000) >> 16) / 255
+                    b = CGFloat((hexNumber & 0x0000ff00) >> 8) / 255
+                    a = CGFloat(hexNumber & 0x000000ff) / 255
+
+                    self.init(red: r, green: g, blue: b, alpha: a)
+                    return
+                }
+            }
+        }
+
+        return nil
     }
 }

@@ -10,7 +10,16 @@ class SfSymbols {
 }
 
 class SfSymbol extends StatefulWidget {
-  const SfSymbol({super.key});
+  final String name;
+  final FontWeight weight;
+  final Color color;
+
+  const SfSymbol({
+    super.key,
+    required this.name,
+    this.weight = FontWeight.normal,
+    required this.color,
+  });
 
   @override
   State<SfSymbol> createState() => _SfSymbolState();
@@ -31,11 +40,16 @@ class _SfSymbolState extends State<SfSymbol> {
   Size? symbolSize;
 
   initSymbol() async {
-    symbolTextureId = await SfSymbolsPlatform.instance.init();
-    print(symbolTextureId);
+    FontWeight.bold.index;
+    symbolTextureId = await SfSymbolsPlatform.instance.init(
+      widget.name,
+      widget.weight,
+      widget.color,
+    );
+
     if (symbolTextureId != null) {
       symbolSize = await SfSymbolsPlatform.instance.render(symbolTextureId!);
-      print(symbolSize);
+
       if (symbolSize != null && mounted) setState(() {});
     }
   }
