@@ -17,6 +17,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(useMaterial3: true),
       home: Scaffold(
         appBar: AppBar(
@@ -52,6 +53,7 @@ class _MyAppState extends State<MyApp> {
                               SizedBox(
                                 width: 40,
                                 child: SfSymbol(
+                                  size: 40,
                                   weight: weight,
                                   color: color,
                                   name: name,

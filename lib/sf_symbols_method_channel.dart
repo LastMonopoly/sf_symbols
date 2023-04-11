@@ -19,7 +19,12 @@ class MethodChannelSfSymbols extends SfSymbolsPlatform {
   static const idKey = "textureId";
 
   @override
-  Future<int?> init(String name, FontWeight weight, Color color) async {
+  Future<int?> init({
+    required String name,
+    required FontWeight weight,
+    required Color color,
+    required double size,
+  }) async {
     final hexColor =
         color.value.toRadixString(16).padLeft(8, '0').toUpperCase();
 
@@ -27,6 +32,7 @@ class MethodChannelSfSymbols extends SfSymbolsPlatform {
       'name': name,
       'weight': weight.index + 1,
       'color': '#$hexColor',
+      'size': size,
     });
 
     return result[idKey];

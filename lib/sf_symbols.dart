@@ -14,11 +14,15 @@ class SfSymbol extends StatefulWidget {
   final FontWeight weight;
   final Color color;
 
+  /// the symbol will be rendered as a size x size image, unit is dp, not pixel
+  final double size;
+
   const SfSymbol({
     super.key,
     required this.name,
     this.weight = FontWeight.normal,
     required this.color,
+    required this.size,
   });
 
   @override
@@ -26,7 +30,7 @@ class SfSymbol extends StatefulWidget {
 }
 
 class _SfSymbolState extends State<SfSymbol> {
-  String _platformVersion = 'Unknown';
+  String _platformVersion = 'Unknown'; // TODO error handling
   final _sfSymbolsPlugin = SfSymbols();
 
   @override
@@ -42,9 +46,10 @@ class _SfSymbolState extends State<SfSymbol> {
   initSymbol() async {
     FontWeight.bold.index;
     symbolTextureId = await SfSymbolsPlatform.instance.init(
-      widget.name,
-      widget.weight,
-      widget.color,
+      name: widget.name,
+      weight: widget.weight,
+      color: widget.color,
+      size: widget.size,
     );
 
     if (symbolTextureId != null) {
@@ -87,9 +92,11 @@ class _SfSymbolState extends State<SfSymbol> {
   @override
   Widget build(BuildContext context) {
     if (symbolTextureId != null && symbolSize != null) {
-      return AspectRatio(
-        aspectRatio: symbolSize!.aspectRatio,
-        child: Texture(textureId: symbolTextureId!),
+      return Center(
+        child: AspectRatio(
+          aspectRatio: symbolSize!.aspectRatio,
+          child: Texture(textureId: symbolTextureId!),
+        ),
       );
     } else {
       return const SizedBox();

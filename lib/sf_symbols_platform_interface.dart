@@ -29,7 +29,12 @@ abstract class SfSymbolsPlatform extends PlatformInterface {
     throw UnimplementedError('platformVersion() has not been implemented.');
   }
 
-  Future<int?> init(String name, FontWeight weight, Color color) async =>
+  Future<int?> init({
+    required String name,
+    required FontWeight weight,
+    required Color color,
+    required double size,
+  }) async =>
       throw UnimplementedError();
 
   Future<Size> render(int textureId) async => throw UnimplementedError();

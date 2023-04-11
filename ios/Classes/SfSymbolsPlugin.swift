@@ -25,6 +25,10 @@ public class SfSymbolsPlugin: NSObject, FlutterPlugin {
                 result(FlutterError(code: "INVALID_ARGUMENT", message: "weight is invalid", details: nil))
                 return
             }
+            guard let size = (call.arguments as? [String: Any])?["size"] as? CGFloat else {
+                result(FlutterError(code: "INVALID_ARGUMENT", message: "size is invalid", details: nil))
+                return
+            }
 
             guard let hexColor = (call.arguments as? [String: Any])?["color"] as? String,
                   let color = UIColor(hex: hexColor)
@@ -33,7 +37,7 @@ public class SfSymbolsPlugin: NSObject, FlutterPlugin {
                 return
             }
 
-            let texture = SfSymbolTexture(name: name, weight: weight, color: color)
+            let texture = SfSymbolTexture(name: name, weight: weight, color: color, size: size)
             let id = Self.textureRegistry?.register(texture)
             guard let id = id else {
                 result(nil)
@@ -74,10 +78,10 @@ class SfSymbolTexture: NSObject, FlutterTexture {
     let image: UIImage?
     var pixelBuffer: CVPixelBuffer?
 
-    init(name: String, weight: Int, color: UIColor) {
+    init(name: String, weight: Int, color: UIColor, size: CGFloat) {
         if #available(iOS 13.0, *) {
             let config = UIImage.SymbolConfiguration(
-                pointSize: 100,
+                pointSize: size,
                 weight: UIImage.SymbolWeight(rawValue: weight) ?? .regular)
 
             self.image = UIImage(systemName: name, withConfiguration: config)?
