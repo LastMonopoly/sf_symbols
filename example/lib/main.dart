@@ -13,30 +13,55 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  bool show = true;
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData.dark(useMaterial3: true),
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('SF Symbols example'),
+          title: const Text('SF Symbols'),
         ),
         body: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () {
-            setState(() {});
+            setState(() {
+              show = !show;
+            });
           },
-          child: Center(
-            child: SizedBox(
-              width: 100,
-              child: SfSymbol(
-                key: UniqueKey(),
-                weight: FontWeight.w900,
-                color: const Color(0xFF00acc1),
-                name: 'pencil.circle',
-              ),
-            ),
-          ),
+          child: show
+              ? Center(
+                  child: SingleChildScrollView(
+                    child: Wrap(
+                      spacing: 0,
+                      runSpacing: 20,
+                      children: [
+                        for (var name in [
+                          'camera',
+                          'camera.macro',
+                          'camera.aperture',
+                          'camera.filters',
+                        ])
+                          for (var color in [
+                            Colors.blueAccent,
+                            Colors.pinkAccent,
+                            Colors.greenAccent,
+                            // Colors.amberAccent
+                          ])
+                            for (var weight in FontWeight.values)
+                              SizedBox(
+                                width: 40,
+                                child: SfSymbol(
+                                  weight: weight,
+                                  color: color,
+                                  name: name,
+                                ),
+                              ),
+                      ],
+                    ),
+                  ),
+                )
+              : null,
         ),
       ),
     );
