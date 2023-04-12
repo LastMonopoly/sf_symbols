@@ -1,7 +1,7 @@
 name: sf_symbols
-description: Use native SF Symbols on iOS
-version: 0.0.1
-# homepage:
+description: Native SF Symbols on iOS
+version: 0.1.0
+homepage: https://github.com/LastMonopoly/sf_symbols
 
 environment:
   sdk: ">=2.19.6 <3.0.0"
@@ -67,3 +67,7 @@ flutter:
   #
   # For details regarding fonts in packages, see
   # https://flutter.dev/custom-fonts/#from-packages
+
+screenshots:
+  - description: "SF symbols demo on iOS"
+    path: screenshots/demo.png
