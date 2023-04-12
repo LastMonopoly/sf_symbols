@@ -33,7 +33,7 @@ abstract class SfSymbolsPlatform extends PlatformInterface {
   }) async =>
       throw UnimplementedError();
 
-  Future<Size> render(int textureId) async => throw UnimplementedError();
+  Future<Size?> render(int textureId) async => throw UnimplementedError();
 
   Future dispose(int textureId) async => throw UnimplementedError();
 }

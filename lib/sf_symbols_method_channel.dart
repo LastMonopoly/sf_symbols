@@ -21,31 +21,48 @@ class MethodChannelSfSymbols extends SfSymbolsPlatform {
     final hexColor =
         color.value.toRadixString(16).padLeft(8, '0').toUpperCase();
 
-    final result = await methodChannel.invokeMethod('init', {
-      'name': name,
-      'weight': weight.index + 1,
-      'color': '#$hexColor',
-      'size': size,
-    });
+    try {
+      final result = await methodChannel.invokeMethod('init', {
+        'name': name,
+        'weight': weight.index + 1,
+        'color': '#$hexColor',
+        'size': size,
+      });
 
-    return result[idKey];
+      return result[idKey];
+    } catch (e) {
+      if (kDebugMode) print('SfSymbols init: $e');
+      return null;
+    }
   }
 
   @override
-  Future<Size> render(int textureId) async {
-    final size = await methodChannel.invokeMethod('render', {
-      idKey: textureId,
-    });
-    return Size(
-      size['width']?.toDouble() ?? 0,
-      size['height']?.toDouble() ?? 0,
-    );
+  Future<Size?> render(int textureId) async {
+    try {
+      final value = await methodChannel.invokeMapMethod('render', {
+        idKey: textureId,
+      });
+      final width = value?['width'] as num?;
+      final height = value?['height'] as num?;
+      if (width == null || height == null) return null;
+
+      final size = Size(width.toDouble(), height.toDouble());
+      if (size.isEmpty) return null;
+      return size;
+    } catch (e) {
+      if (kDebugMode) print('SfSymbols render: $e');
+      return null;
+    }
   }
 
   @override
   Future dispose(int textureId) async {
-    await methodChannel.invokeMethod('dispose', {
-      idKey: textureId,
-    });
+    try {
+      await methodChannel.invokeMethod('dispose', {
+        idKey: textureId,
+      });
+    } catch (e) {
+      if (kDebugMode) print('SfSymbols dispose: $e');
+    }
   }
 }

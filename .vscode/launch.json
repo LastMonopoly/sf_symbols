@@ -8,12 +8,12 @@
             "name": "attach",
             "request": "attach",
             "type": "dart",
-            "deviceId": "2891D032-DA66-48B9-99FD-FC6D140CA2C7",
+            // "deviceId": "2891D032-DA66-48B9-99FD-FC6D140CA2C7",
             "args": [
                 "-t",
                 "example/lib/main.dart",
-                // "--app-id",
-                // "tech.hanshi.SfSymbolExample",
+                "--app-id",
+                "tech.hanshi.sfSymbolsExample",
             ]
         },
         {

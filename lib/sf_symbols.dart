@@ -23,8 +23,6 @@ class SfSymbol extends StatefulWidget {
 }
 
 class _SfSymbolState extends State<SfSymbol> {
-  // TODO error handling
-
   @override
   void initState() {
     super.initState();
