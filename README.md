@@ -7,7 +7,7 @@
 Use `SfSymbol` like any other widget with picked name, weight, color & size. 
 
 
-Size corresponds to the pointSize in [UIImage.SymbolConfiguration](https://developer.apple.com/documentation/uikit/uiimage/symbolconfiguration/3294243-init), i.e. a SF symbol of size 40 will render roughly as big as 40pts x 40pts (pts is points in iOS).
+Size corresponds to the pointSize in [UIImage.SymbolConfiguration](https://developer.apple.com/documentation/uikit/uiimage/symbolconfiguration/3294242-init), a SF symbol of size 40 will render roughly as big as 40pts x 40pts (pts is points in iOS).
 ```dart
 SfSymbol(
     name: 'camera.aperture',
