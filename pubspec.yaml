@@ -1,6 +1,6 @@
 name: sf_symbols
-description: Native SF Symbols on iOS
-version: 0.1.0
+description: Render SF Symbols on iOS, same as Image(systemName:) or UIImage(systemName:) in Swift.
+version: 0.2.0
 homepage: https://github.com/LastMonopoly/sf_symbols
 
 environment:

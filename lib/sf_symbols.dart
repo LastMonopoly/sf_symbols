@@ -34,7 +34,6 @@ class _SfSymbolState extends State<SfSymbol> {
   Size? symbolSize;
 
   initSymbol() async {
-    FontWeight.bold.index;
     symbolTextureId = await SfSymbolsPlatform.instance.init(
       name: widget.name,
       weight: widget.weight,

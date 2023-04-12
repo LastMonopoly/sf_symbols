@@ -1,15 +1,20 @@
 # sf_symbols
 
-A new Flutter plugin project.
+This package renders SF symbols natively from iOS as a bitmap, then reposition or resize it in Flutter.
 
-## Getting Started
+## Result
+![SF symbols demo on iOS](https://raw.githubusercontent.com/LastMonopoly/sf_symbols/master/screenshots/demo.png)
 
-This project is a starting point for a Flutter
-[plug-in package](https://flutter.dev/developing-packages/),
-a specialized package that includes platform-specific implementation code for
-Android and/or iOS.
+## Features
+Use SF symbol like any widget with picked name, weight, color & size.
+```dart
+SfSymbol(
+    name: 'camera.aperture',
+    weight: FontWeight.w900,
+    color: Colors.pink,
+    size: 40,
+)
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-
+## Roadmap
+- Support for macOS
