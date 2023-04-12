@@ -59,12 +59,18 @@ class _SfSymbolState extends State<SfSymbol> {
   @override
   Widget build(BuildContext context) {
     if (symbolTextureId != null && symbolSize != null) {
-      return Center(
-        child: AspectRatio(
+      return LayoutBuilder(builder: (context, constraints) {
+        if (constraints.isSatisfiedBy(symbolSize!)) {
+          return SizedBox.fromSize(
+            size: symbolSize,
+            child: Texture(textureId: symbolTextureId!),
+          );
+        }
+        return AspectRatio(
           aspectRatio: symbolSize!.aspectRatio,
           child: Texture(textureId: symbolTextureId!),
-        ),
-      );
+        );
+      });
     } else {
       return const SizedBox();
     }
