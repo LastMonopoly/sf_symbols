@@ -25,10 +25,6 @@ abstract class SfSymbolsPlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future<String?> getPlatformVersion() {
-    throw UnimplementedError('platformVersion() has not been implemented.');
-  }
-
   Future<int?> init({
     required String name,
     required FontWeight weight,

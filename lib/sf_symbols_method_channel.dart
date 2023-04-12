@@ -9,13 +9,6 @@ class MethodChannelSfSymbols extends SfSymbolsPlatform {
   @visibleForTesting
   final methodChannel = const MethodChannel('sf_symbols');
 
-  @override
-  Future<String?> getPlatformVersion() async {
-    final version =
-        await methodChannel.invokeMethod<String>('getPlatformVersion');
-    return version;
-  }
-
   static const idKey = "textureId";
 
   @override

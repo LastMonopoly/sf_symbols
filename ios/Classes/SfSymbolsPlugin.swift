@@ -52,12 +52,7 @@ public class SfSymbolsPlugin: NSObject, FlutterPlugin {
                 result(FlutterError(code: "INVALID_ARGUMENT", message: "url is null or textureID is null", details: nil))
                 return
             }
-
-            let cgSize = Self.textureMap[textureId]?.render()
-            var size = [String: Double]()
-            size["width"] = cgSize?.width ?? 0
-            size["height"] = cgSize?.height ?? 0
-            result(size)
+            render(id: textureId)
 
         case "dispose":
             guard let textureId = (call.arguments as? [String: Any])?[idKey] as? Int64 else {
@@ -70,6 +65,14 @@ public class SfSymbolsPlugin: NSObject, FlutterPlugin {
 
         default:
             result(FlutterMethodNotImplemented)
+        }
+
+        func render(id: Int64) {
+            let cgSize = Self.textureMap[id]?.render()
+            var size = [String: Double]()
+            size["width"] = cgSize?.width ?? 0
+            size["height"] = cgSize?.height ?? 0
+            result(size)
         }
     }
 }

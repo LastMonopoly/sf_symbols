@@ -1,13 +1,6 @@
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import 'sf_symbols_platform_interface.dart';
-
-class SfSymbols {
-  Future<String?> getPlatformVersion() {
-    return SfSymbolsPlatform.instance.getPlatformVersion();
-  }
-}
 
 class SfSymbol extends StatefulWidget {
   final String name;
@@ -30,8 +23,7 @@ class SfSymbol extends StatefulWidget {
 }
 
 class _SfSymbolState extends State<SfSymbol> {
-  String _platformVersion = 'Unknown'; // TODO error handling
-  final _sfSymbolsPlugin = SfSymbols();
+  // TODO error handling
 
   @override
   void initState() {
@@ -65,28 +57,6 @@ class _SfSymbolState extends State<SfSymbol> {
       SfSymbolsPlatform.instance.dispose(symbolTextureId!);
     }
     super.dispose();
-  }
-
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initPlatformState() async {
-    String platformVersion;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    // We also handle the message potentially returning null.
-    try {
-      platformVersion = await _sfSymbolsPlugin.getPlatformVersion() ??
-          'Unknown platform version';
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
-    }
-
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) return;
-
-    setState(() {
-      _platformVersion = platformVersion;
-    });
   }
 
   @override
