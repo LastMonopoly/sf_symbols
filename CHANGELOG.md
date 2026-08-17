@@ -1,3 +1,27 @@
+## 0.4.0
+
+Adds the SF Symbols rendering modes, variable values, scale and accessibility.
+
+* Add the hierarchical, palette and multicolor rendering modes via the
+  `SfSymbol.hierarchical`, `SfSymbol.palette` and `SfSymbol.multicolor`
+  constructors. The default constructor is unchanged and still monochrome.
+* Add `variableValue`, for variable symbols such as `wifi` or
+  `speaker.wave.3` (iOS 16+).
+* Add `scale`, mapping to `UIImage.SymbolScale`. The default matches what
+  earlier versions rendered, so symbols do not resize on upgrade.
+* Add `semanticLabel`, so symbols are no longer invisible to VoiceOver.
+* Add `SfSymbol.isAvailable`, to check a symbol name before using it.
+* Fix the widget ignoring property changes: it only ever loaded its symbol in
+  `initState`, so changing `name`, `color`, `weight` or `size` did nothing.
+  It now reloads on change, swapping textures without a blink, and skips the
+  work when the new configuration is equivalent.
+* Fix a symbol with no variant for the requested rendering mode drawing in
+  black instead of the requested color.
+
+**Breaking:** `SfSymbolsPlatform.init` now takes a single `SfSymbolConfig`
+instead of loose arguments. This only affects code implementing the platform
+interface directly; the `SfSymbol` widget API is unchanged.
+
 ## 0.3.0
 
 * Support the current Flutter and iOS toolchain (Flutter 3.27+, Dart 3, Xcode 16+).
