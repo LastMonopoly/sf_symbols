@@ -2,6 +2,8 @@ name: sf_symbols
 description: Use SF Symbols on iOS, same as Image(systemName:) or UIImage(systemName:) in Swift.
 version: 0.5.0
 homepage: https://github.com/LastMonopoly/sf_symbols
+repository: https://github.com/LastMonopoly/sf_symbols
+issue_tracker: https://github.com/LastMonopoly/sf_symbols/issues
 
 environment:
   sdk: ">=3.6.0 <4.0.0"
@@ -69,5 +71,5 @@ flutter:
   # https://flutter.dev/custom-fonts/#from-packages
 
 screenshots:
-  - description: "SF symbols demo on iOS"
+  - description: "Symbol weights, scales, rendering modes, variable values and effects"
     path: screenshots/demo.png

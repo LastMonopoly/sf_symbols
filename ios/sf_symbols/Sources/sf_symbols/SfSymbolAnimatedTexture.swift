@@ -123,7 +123,10 @@ final class SfSymbolAnimatedTexture: NSObject, FlutterTexture {
     }
 
     private func add(effect: String, repeats: Bool) {
-        let options: SymbolEffectOptions = repeats ? .repeating : .default
+        // Only effects with a natural end honour this: bounce and one cycle of
+        // variableColor. pulse, wiggle, rotate and breathe run until removed,
+        // and scale simply holds the symbol at its new size.
+        let options: SymbolEffectOptions = repeats ? .repeating : .nonRepeating
 
         switch effect {
         case "bounce":

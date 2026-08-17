@@ -127,6 +127,10 @@ class SfSymbol extends StatefulWidget {
   final SfSymbolEffect? effect;
 
   /// Whether [effect] repeats, or plays once when the symbol appears.
+  ///
+  /// Only effects with a natural end are affected: [SfSymbolEffect.bounce] and
+  /// one cycle of [SfSymbolEffect.variableColor]. The others run until the
+  /// symbol goes away, and [SfSymbolEffect.scale] holds its new size.
   final bool effectRepeats;
 
   /// Describes the symbol to accessibility tools such as VoiceOver.
@@ -145,6 +149,10 @@ class SfSymbol extends StatefulWidget {
   static Future<SfSymbolEffectSupport> effectSupport() =>
       SfSymbolsPlatform.instance.effectSupport();
 
+  /// Everything that identifies the image this widget draws.
+  ///
+  /// Pass it to [precache] to render the symbol before the widget is shown; two
+  /// configs that compare equal share one native texture.
   SfSymbolConfig get config {
     final colors = this.colors;
     assert(

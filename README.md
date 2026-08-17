@@ -1,6 +1,6 @@
 # sf_symbols
 
-<img src='https://raw.githubusercontent.com/LastMonopoly/sf_symbols/master/screenshots/demo.png' width=640 alt='The example app, showing symbol weights, scales, the four rendering modes, variable values and animated effects'>
+<img src='https://raw.githubusercontent.com/LastMonopoly/sf_symbols/master/screenshots/demo.png?v=0.5.0' width=640 alt='The example app, showing symbol weights, scales, the four rendering modes, variable values and animated effects'>
 
 Use [SF Symbols](https://developer.apple.com/sf-symbols/) on iOS, the same way you would use
 `Image(systemName:)` or `UIImage(systemName:)` in Swift.
@@ -13,11 +13,17 @@ Use [SF Symbols](https://developer.apple.com/sf-symbols/) on iOS, the same way y
 | iOS | 15.0 or newer |
 | Build system | Swift Package Manager or CocoaPods |
 
+iOS only. On other platforms the widget draws nothing instead of failing, so it is safe to leave in
+a cross-platform tree — `SfSymbol.isAvailable` answers false there, and `SfSymbol.effectSupport`
+answers `none`.
+
 ## Usage
 
-Use `SfSymbol` like any other widget with picked name, weight, color & size.
+Use `SfSymbol` like any other widget, with a name, weight, color and size.
 
-Size corresponds to the pointSize in [UIImage.SymbolConfiguration](https://developer.apple.com/documentation/uikit/uiimage/symbolconfiguration/3294242-init), a SF symbol of size 40 will render roughly as big as 40pts x 40pts (pts is points in iOS).
+`size` is the `pointSize` of [UIImage.SymbolConfiguration](https://developer.apple.com/documentation/uikit/uiimage/symbolconfiguration/3294242-init),
+so a symbol of size 40 renders roughly 40 x 40 logical pixels — the widget sizes itself to whatever
+iOS actually draws, which is rarely exactly square.
 ```dart
 SfSymbol(
     name: 'camera.aperture',
@@ -82,8 +88,7 @@ SfSymbol(
 
 ### Effects
 
-Symbols can play the SF Symbols animations. Pass an `effect`, and set
-`effectRepeats: false` for one that plays once instead of looping.
+Symbols can play the SF Symbols animations. Pass an `effect`:
 
 ```dart
 SfSymbol(
@@ -98,6 +103,11 @@ SfSymbol(
 iOS 18. Asking for an effect the running iOS cannot play leaves the symbol still rather than
 failing, so no version check is required. `await SfSymbol.effectSupport()` reports what the device
 can play if you want to choose a different effect or hide a control.
+
+`effectRepeats: false` plays the effect once instead of looping. That only applies to the effects
+that have a natural end — `bounce`, and one cycle of `variableColor`. `pulse`, `wiggle`, `rotate`
+and `breathe` run for as long as the symbol is on screen, and `scale` holds the symbol at its new
+size.
 
 Animated symbols are redrawn every frame, so use them for the few symbols the user is meant to
 look at, not for every icon on the screen.
@@ -117,12 +127,19 @@ await SfSymbol.precache(
 );
 ```
 
+The config has to match the one the widget asks for, down to the size and the weight, or the two
+are different images. `someSymbol.config` gives you the config of an `SfSymbol` you already have.
+
 `SfSymbolCache.instance` exposes `maximumUnusedEntries` (48 by default) and `evictUnused()` for
 apps that want to tune the off-screen pool or drop it under memory pressure. Animated symbols are
 never pooled: keeping one alive would keep its display link running.
 
 ## How it works
-This package renders SF symbols natively from iOS as a texture, then reposition and resize the texture in Flutter. For more, check out the [texture class](https://api.flutter.dev/flutter/widgets/Texture-class.html) in Flutter.
+
+iOS renders the symbol into a pixel buffer, which Flutter draws as a
+[`Texture`](https://api.flutter.dev/flutter/widgets/Texture-class.html). The symbols are the real
+ones from the system, at whatever version of the SF Symbols set the device ships, and an animated
+symbol is a UIKit symbol effect with its frames pushed into the texture.
 
 ## Running the example
 
