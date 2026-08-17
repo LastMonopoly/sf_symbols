@@ -30,6 +30,10 @@ class FakeSfSymbolsPlatform extends SfSymbolsPlatform
 
   @override
   Future<bool> isAvailable(String name) async => name != 'not.a.symbol';
+
+  @override
+  Future<SfSymbolEffectSupport> effectSupport() async =>
+      SfSymbolEffectSupport.full;
 }
 
 void main() {

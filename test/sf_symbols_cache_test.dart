@@ -25,6 +25,10 @@ class FakeSfSymbolsPlatform extends SfSymbolsPlatform
 
   @override
   Future<bool> isAvailable(String name) async => name != 'not.a.symbol';
+
+  @override
+  Future<SfSymbolEffectSupport> effectSupport() async =>
+      SfSymbolEffectSupport.full;
 }
 
 void main() {
@@ -162,6 +166,42 @@ void main() {
     expect(cache.acquireCached(config('camera')), isNull);
     await cache.acquire(config('camera'));
     expect(cache.acquireCached(config('camera')), isNotNull);
+  });
+
+  test('an animating symbol is dropped as soon as nothing shows it', () async {
+    const animated = SfSymbolConfig(
+      name: 'heart.fill',
+      size: 40,
+      effect: SfSymbolEffect.pulse,
+    );
+
+    await cache.acquire(animated);
+    await cache.acquire(animated);
+
+    // Shared while two widgets show it.
+    expect(fake.rendered, hasLength(1));
+
+    cache.release(animated);
+    expect(fake.disposed, isEmpty, reason: 'one holder remains');
+
+    cache.release(animated);
+    // Not parked in the unused pool: it would keep a display link running.
+    expect(fake.disposed, [1]);
+    expect(cache.unusedLength, 0);
+    expect(cache.contains(animated), isFalse);
+  });
+
+  test('an effect makes an otherwise identical config distinct', () {
+    const still = SfSymbolConfig(name: 'heart.fill', size: 40);
+    const beating = SfSymbolConfig(
+      name: 'heart.fill',
+      size: 40,
+      effect: SfSymbolEffect.pulse,
+    );
+
+    expect(still, isNot(beating));
+    expect(still.isAnimated, isFalse);
+    expect(beating.isAnimated, isTrue);
   });
 
   test('releasing something never acquired is harmless', () {

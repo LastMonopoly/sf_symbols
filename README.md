@@ -1,6 +1,6 @@
 # sf_symbols
 
-<img src='https://raw.githubusercontent.com/LastMonopoly/sf_symbols/master/screenshots/demo.png' width=380 alt='The example app, showing symbol weights, scales, the four rendering modes and variable values'>
+<img src='https://raw.githubusercontent.com/LastMonopoly/sf_symbols/master/screenshots/demo.png' width=640 alt='The example app, showing symbol weights, scales, the four rendering modes, variable values and animated effects'>
 
 Use [SF Symbols](https://developer.apple.com/sf-symbols/) on iOS, the same way you would use
 `Image(systemName:)` or `UIImage(systemName:)` in Swift.
@@ -79,6 +79,47 @@ SfSymbol(
   semanticLabel: 'Camera',
 )
 ```
+
+### Effects
+
+Symbols can play the SF Symbols animations. Pass an `effect`, and set
+`effectRepeats: false` for one that plays once instead of looping.
+
+```dart
+SfSymbol(
+  name: 'wifi.router.fill',
+  color: Colors.blue,
+  size: 40,
+  effect: SfSymbolEffect.variableColor,
+)
+```
+
+`bounce`, `pulse`, `variableColor` and `scale` need iOS 17; `wiggle`, `rotate` and `breathe` need
+iOS 18. Asking for an effect the running iOS cannot play leaves the symbol still rather than
+failing, so no version check is required. `await SfSymbol.effectSupport()` reports what the device
+can play if you want to choose a different effect or hide a control.
+
+Animated symbols are redrawn every frame, so use them for the few symbols the user is meant to
+look at, not for every icon on the screen.
+
+### Caching
+
+Identical symbols share one native texture, so a list of a hundred rows showing the same icon costs
+one rendered image rather than a hundred. A symbol that is already rendered draws on its first
+frame, with no blank gap while the platform channel answers.
+
+Symbols scrolled off screen are kept for a while in case they come back. To render one before it is
+first shown:
+
+```dart
+await SfSymbol.precache(
+  const SfSymbolConfig(name: 'camera', size: 40, colors: [Colors.blue]),
+);
+```
+
+`SfSymbolCache.instance` exposes `maximumUnusedEntries` (48 by default) and `evictUnused()` for
+apps that want to tune the off-screen pool or drop it under memory pressure. Animated symbols are
+never pooled: keeping one alive would keep its display link running.
 
 ## How it works
 This package renders SF symbols natively from iOS as a texture, then reposition and resize the texture in Flutter. For more, check out the [texture class](https://api.flutter.dev/flutter/widgets/Texture-class.html) in Flutter.

@@ -1,3 +1,21 @@
+## 0.5.0
+
+Adds animated symbol effects, and shares rendered symbols between widgets.
+
+* Add `effect`, playing an SF Symbols animation on the symbol: bounce, pulse,
+  variable color, scale (iOS 17+), plus wiggle, rotate and breathe (iOS 18+).
+  An effect the running OS does not have leaves the symbol still, so no
+  version check is needed; `SfSymbol.effectSupport()` reports what it can play.
+* Add `effectRepeats`, for effects that can either repeat or play once.
+* Share one native texture between identical symbols. A list of a hundred rows
+  showing the same icon used to cost a hundred textures and a hundred pixel
+  buffers; it now costs one. Symbols scrolled off screen are kept for reuse.
+* Draw an already-rendered symbol on its first frame, instead of leaving a
+  blank gap for a frame while the platform channel answers.
+* Add `SfSymbol.precache`, to render a symbol before it is needed.
+* Add `SfSymbolCache`, exposing `maximumUnusedEntries` and `evictUnused` for
+  apps that want to tune or drop the off-screen pool.
+
 ## 0.4.0
 
 Adds the SF Symbols rendering modes, variable values, scale and accessibility.

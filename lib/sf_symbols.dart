@@ -6,7 +6,12 @@ import 'sf_symbols_platform_interface.dart';
 
 export 'sf_symbols_cache.dart' show SfSymbolCache, SfSymbolTexture;
 export 'sf_symbols_config.dart'
-    show SfSymbolConfig, SfSymbolRenderingMode, SfSymbolScale;
+    show
+        SfSymbolConfig,
+        SfSymbolEffect,
+        SfSymbolEffectSupport,
+        SfSymbolRenderingMode,
+        SfSymbolScale;
 
 /// Renders an SF Symbol natively on iOS.
 ///
@@ -32,6 +37,8 @@ class SfSymbol extends StatefulWidget {
     this.weight = FontWeight.normal,
     this.scale = SfSymbolScale.medium,
     this.variableValue,
+    this.effect,
+    this.effectRepeats = true,
     this.semanticLabel,
   })  : renderingMode = SfSymbolRenderingMode.monochrome,
         colors = null;
@@ -46,6 +53,8 @@ class SfSymbol extends StatefulWidget {
     this.weight = FontWeight.normal,
     this.scale = SfSymbolScale.medium,
     this.variableValue,
+    this.effect,
+    this.effectRepeats = true,
     this.semanticLabel,
   })  : renderingMode = SfSymbolRenderingMode.hierarchical,
         colors = null;
@@ -62,6 +71,8 @@ class SfSymbol extends StatefulWidget {
     this.weight = FontWeight.normal,
     this.scale = SfSymbolScale.medium,
     this.variableValue,
+    this.effect,
+    this.effectRepeats = true,
     this.semanticLabel,
   })  : renderingMode = SfSymbolRenderingMode.palette,
         color = null;
@@ -78,6 +89,8 @@ class SfSymbol extends StatefulWidget {
     this.weight = FontWeight.normal,
     this.scale = SfSymbolScale.medium,
     this.variableValue,
+    this.effect,
+    this.effectRepeats = true,
     this.semanticLabel,
   })  : renderingMode = SfSymbolRenderingMode.multicolor,
         colors = null;
@@ -106,6 +119,16 @@ class SfSymbol extends StatefulWidget {
   /// Requires iOS 16; earlier versions draw the symbol fully filled.
   final double? variableValue;
 
+  /// The animation to run, or null for a still symbol.
+  ///
+  /// Requires iOS 17, and some effects iOS 18; see [SfSymbolEffect]. Animating
+  /// symbols redraw every frame and are not shared with other widgets, so use
+  /// them where the motion means something rather than everywhere.
+  final SfSymbolEffect? effect;
+
+  /// Whether [effect] repeats, or plays once when the symbol appears.
+  final bool effectRepeats;
+
   /// Describes the symbol to accessibility tools such as VoiceOver.
   final String? semanticLabel;
 
@@ -117,6 +140,10 @@ class SfSymbol extends StatefulWidget {
   /// frame of empty space a first render would otherwise leave.
   static Future<void> precache(SfSymbolConfig config) =>
       SfSymbolCache.instance.precache(config);
+
+  /// Which [SfSymbolEffect]s the running iOS version can play.
+  static Future<SfSymbolEffectSupport> effectSupport() =>
+      SfSymbolsPlatform.instance.effectSupport();
 
   SfSymbolConfig get config {
     final colors = this.colors;
@@ -134,6 +161,8 @@ class SfSymbol extends StatefulWidget {
       renderingMode: renderingMode,
       colors: colors ?? (color == null ? const <Color>[] : <Color>[color!]),
       variableValue: variableValue,
+      effect: effect,
+      effectRepeats: effectRepeats,
     );
   }
 

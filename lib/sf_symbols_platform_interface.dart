@@ -38,4 +38,8 @@ abstract class SfSymbolsPlatform extends PlatformInterface {
 
   /// Whether a symbol named [name] exists on the running OS version.
   Future<bool> isAvailable(String name) async => throw UnimplementedError();
+
+  /// Which symbol effects the running OS version can play.
+  Future<SfSymbolEffectSupport> effectSupport() async =>
+      throw UnimplementedError();
 }

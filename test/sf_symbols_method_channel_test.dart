@@ -121,6 +121,24 @@ void main() {
       );
     });
 
+    test('omits the effect when there is none, and names it when there is', () {
+      expect(
+        MethodChannelSfSymbols.encodeConfig(
+          const SfSymbolConfig(name: 'heart.fill', size: 10),
+        ),
+        isNot(contains('effect')),
+      );
+
+      final encoded = MethodChannelSfSymbols.encodeConfig(const SfSymbolConfig(
+        name: 'heart.fill',
+        size: 10,
+        effect: SfSymbolEffect.variableColor,
+        effectRepeats: false,
+      ));
+      expect(encoded['effect'], 'variableColor');
+      expect(encoded['effectRepeats'], false);
+    });
+
     test('preserves the alpha channel', () {
       final encoded = MethodChannelSfSymbols.encodeConfig(const SfSymbolConfig(
         name: 'camera',

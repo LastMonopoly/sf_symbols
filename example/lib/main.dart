@@ -153,6 +153,26 @@ class _DemoPageState extends State<DemoPage> {
             value: _variableValue,
             onChanged: (value) => setState(() => _variableValue = value),
           ),
+          const _Section('Effects'),
+          Wrap(
+            spacing: 24,
+            runSpacing: 16,
+            children: [
+              for (final effect in SfSymbolEffect.values)
+                _Labeled(
+                  effect.name,
+                  SfSymbol(
+                    name: 'wifi.router.fill',
+                    size: 40,
+                    color: _tint,
+                    effect: effect,
+                  ),
+                  // Without a width the cells stretch to the full row, so the
+                  // Wrap would only ever fit one effect per line.
+                  width: 76,
+                ),
+            ],
+          ),
         ],
       ),
     );
@@ -181,17 +201,18 @@ class _Section extends StatelessWidget {
 }
 
 class _Labeled extends StatelessWidget {
-  const _Labeled(this.label, this.child);
+  const _Labeled(this.label, this.child, {this.width});
 
   final String label;
   final Widget child;
+  final double? width;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        SizedBox(height: 44, child: Center(child: child)),
+        SizedBox(height: 44, width: width, child: Center(child: child)),
         Text(label, style: const TextStyle(fontSize: 10, color: Colors.white54)),
       ],
     );

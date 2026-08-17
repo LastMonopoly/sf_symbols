@@ -1,11 +1,20 @@
 import Flutter
 import UIKit
 
+/// Anything the plugin can hand to the engine as a texture.
+protocol SfSymbolRenderable: FlutterTexture {
+    /// Draws the symbol, returning its size in points.
+    func render() -> CGSize
+    /// Called once the texture has an id, and again when it is torn down.
+    func attach(registry: FlutterTextureRegistry, textureId: Int64)
+    func detach()
+}
+
 public class SfSymbolsPlugin: NSObject, FlutterPlugin {
     private static let idKey = "textureId"
 
     private let textureRegistry: FlutterTextureRegistry
-    private var textureMap: [Int64: SfSymbolTexture] = [:]
+    private var textureMap: [Int64: SfSymbolRenderable] = [:]
 
     init(textureRegistry: FlutterTextureRegistry) {
         self.textureRegistry = textureRegistry
@@ -23,44 +32,22 @@ public class SfSymbolsPlugin: NSObject, FlutterPlugin {
 
         switch call.method {
         case "init":
-            guard let name = arguments["name"] as? String else {
-                result(FlutterError(code: "INVALID_ARGUMENT", message: "name is invalid", details: nil))
-                return
-            }
-            guard let weight = (arguments["weight"] as? NSNumber)?.intValue else {
-                result(FlutterError(code: "INVALID_ARGUMENT", message: "weight is invalid", details: nil))
-                return
-            }
-            guard let size = (arguments["size"] as? NSNumber)?.doubleValue, size > 0 else {
-                result(FlutterError(code: "INVALID_ARGUMENT", message: "size is invalid", details: nil))
+            guard let request = SfSymbolImage.request(from: arguments) else {
+                result(FlutterError(code: "INVALID_ARGUMENT", message: "invalid symbol request", details: nil))
                 return
             }
 
-            let colors = (arguments["colors"] as? [String] ?? []).compactMap { UIColor(hex: $0) }
-            guard colors.count == (arguments["colors"] as? [String] ?? []).count else {
-                result(FlutterError(code: "INVALID_ARGUMENT", message: "color is invalid", details: nil))
-                return
-            }
-
-            let renderingMode = arguments["renderingMode"] as? String ?? "monochrome"
-            let scale = (arguments["scale"] as? NSNumber)?.intValue ?? 2
-            let variableValue = (arguments["variableValue"] as? NSNumber)?.doubleValue
-
-            guard let texture = SfSymbolTexture(
-                name: name,
-                weight: weight,
-                scale: scale,
-                colors: colors,
-                renderingMode: renderingMode,
-                variableValue: variableValue,
-                size: CGFloat(size)
-            ) else {
-                result(FlutterError(code: "UNKNOWN_SYMBOL", message: "no SF Symbol named \(name)", details: nil))
+            guard let texture = makeTexture(request: request, arguments: arguments) else {
+                result(FlutterError(
+                    code: "UNKNOWN_SYMBOL",
+                    message: "no SF Symbol named \(request.name)",
+                    details: nil))
                 return
             }
 
             let id = textureRegistry.register(texture)
             textureMap[id] = texture
+            texture.attach(registry: textureRegistry, textureId: id)
             result([Self.idKey: id])
 
         case "render":
@@ -79,8 +66,8 @@ public class SfSymbolsPlugin: NSObject, FlutterPlugin {
                 result(FlutterError(code: "INVALID_ARGUMENT", message: "textureId is invalid", details: nil))
                 return
             }
+            textureMap.removeValue(forKey: textureId)?.detach()
             textureRegistry.unregisterTexture(textureId)
-            textureMap.removeValue(forKey: textureId)
             result(nil)
 
         case "available":
@@ -90,85 +77,79 @@ public class SfSymbolsPlugin: NSObject, FlutterPlugin {
             }
             result(UIImage(systemName: name) != nil)
 
+        case "effectsSupported":
+            if #available(iOS 18.0, *) {
+                result("18")
+            } else if #available(iOS 17.0, *) {
+                result("17")
+            } else {
+                result("none")
+            }
+
         default:
             result(FlutterMethodNotImplemented)
         }
     }
+
+    private func makeTexture(
+        request: SfSymbolImage.Request,
+        arguments: [String: Any]
+    ) -> SfSymbolRenderable? {
+        let effect = arguments["effect"] as? String
+        let repeats = arguments["effectRepeats"] as? Bool ?? true
+
+        if let effect = effect, #available(iOS 17.0, *) {
+            if let animated = SfSymbolAnimatedTexture(
+                request: request,
+                effect: effect,
+                repeats: repeats
+            ) {
+                return animated
+            }
+            // No window to animate in yet: fall through to a static symbol
+            // rather than showing nothing at all.
+        }
+
+        return SfSymbolTexture(request: request)
+    }
 }
 
-class SfSymbolTexture: NSObject, FlutterTexture {
+/// A symbol drawn once and held as a single frame.
+class SfSymbolTexture: NSObject, SfSymbolRenderable {
     private let image: UIImage
-    /// Drawn with, if `image` turns out to be a template image — which happens
-    /// when a symbol has no variant for the requested rendering mode. Without
-    /// it such a symbol would draw in the context's default black.
     private let fallbackColor: UIColor
     private var pixelBuffer: CVPixelBuffer?
 
-    init?(
-        name: String,
-        weight: Int,
-        scale: Int,
-        colors: [UIColor],
-        renderingMode: String,
-        variableValue: Double?,
-        size: CGFloat
-    ) {
-        var configuration = UIImage.SymbolConfiguration(
-            pointSize: size,
-            weight: UIImage.SymbolWeight(rawValue: weight) ?? .regular,
-            scale: UIImage.SymbolScale(rawValue: scale) ?? .medium)
-
-        // Layer colors are part of the configuration, not of the drawing
-        // context, so they have to be applied before the image is created.
-        switch renderingMode {
-        case "hierarchical":
-            if let color = colors.first {
-                configuration = configuration.applying(
-                    UIImage.SymbolConfiguration(hierarchicalColor: color))
-            }
-        case "palette":
-            if !colors.isEmpty {
-                configuration = configuration.applying(
-                    UIImage.SymbolConfiguration(paletteColors: colors))
-            }
-        case "multicolor":
-            configuration = configuration.applying(
-                UIImage.SymbolConfiguration.preferringMulticolor())
-        default:
-            break
-        }
-
-        var symbol: UIImage?
-        if #available(iOS 16.0, *), let variableValue = variableValue {
-            symbol = UIImage(systemName: name, variableValue: variableValue, configuration: configuration)
-        } else {
-            symbol = UIImage(systemName: name, withConfiguration: configuration)
-        }
-        guard let symbol = symbol else { return nil }
-
-        if renderingMode == "monochrome", let color = colors.first {
-            // Baked in, so drawing does not fall back to the context's fill color.
-            self.image = symbol.withTintColor(color, renderingMode: .alwaysOriginal)
-        } else {
-            // Keep the image exactly as configured: re-wrapping it, even with
-            // `withRenderingMode(.alwaysOriginal)`, discards the hierarchical
-            // and palette colors carried by the symbol configuration.
-            self.image = symbol
-        }
-        self.fallbackColor = colors.first ?? .label
+    init?(request: SfSymbolImage.Request) {
+        guard let image = SfSymbolImage.make(request) else { return nil }
+        self.image = image
+        self.fallbackColor = request.fallbackColor
         super.init()
     }
 
-    /// Renders the symbol into a pixel buffer, returning its size in points.
     func render() -> CGSize {
         pixelBuffer = image.convertToBuffer(templateColor: fallbackColor)
         return image.size
     }
 
+    func attach(registry: FlutterTextureRegistry, textureId: Int64) {}
+    func detach() {}
+
     func copyPixelBuffer() -> Unmanaged<CVPixelBuffer>? {
         guard let pixelBuffer = pixelBuffer else { return nil }
         return Unmanaged<CVPixelBuffer>.passRetained(pixelBuffer)
     }
+}
+
+@available(iOS 17.0, *)
+extension SfSymbolAnimatedTexture: SfSymbolRenderable {
+    func render() -> CGSize { size }
+
+    func attach(registry: FlutterTextureRegistry, textureId: Int64) {
+        start(registry: registry, textureId: textureId)
+    }
+
+    func detach() { stop() }
 }
 
 extension UIImage {
@@ -212,13 +193,13 @@ extension UIImage {
             return nil
         }
 
-        // CoreGraphics draws bottom-up, UIKit top-down.
-        context.translateBy(x: 0, y: CGFloat(height))
-        context.scaleBy(x: 1.0, y: -1.0)
-
         // Only consulted for template images; images that carry their own
         // colors ignore it.
         context.setFillColor(templateColor.cgColor)
+
+        // CoreGraphics draws bottom-up, UIKit top-down.
+        context.translateBy(x: 0, y: CGFloat(height))
+        context.scaleBy(x: 1.0, y: -1.0)
 
         UIGraphicsPushContext(context)
         draw(in: CGRect(x: 0, y: 0, width: CGFloat(width), height: CGFloat(height)))

@@ -26,6 +26,10 @@ class MethodChannelSfSymbols extends SfSymbolsPlatform {
       'colors': [for (final color in config.colors) _hex(color)],
       if (config.variableValue != null)
         'variableValue': config.variableValue!.clamp(0.0, 1.0),
+      if (config.effect != null) ...{
+        'effect': config.effect!.name,
+        'effectRepeats': config.effectRepeats,
+      },
     };
   }
 
@@ -74,6 +78,21 @@ class MethodChannelSfSymbols extends SfSymbolsPlatform {
       });
     } catch (e) {
       if (kDebugMode) print('SfSymbols dispose: $e');
+    }
+  }
+
+  @override
+  Future<SfSymbolEffectSupport> effectSupport() async {
+    try {
+      final level = await methodChannel.invokeMethod<String>('effectsSupported');
+      return switch (level) {
+        '18' => SfSymbolEffectSupport.full,
+        '17' => SfSymbolEffectSupport.partial,
+        _ => SfSymbolEffectSupport.none,
+      };
+    } catch (e) {
+      if (kDebugMode) print('SfSymbols effectsSupported: $e');
+      return SfSymbolEffectSupport.none;
     }
   }
 

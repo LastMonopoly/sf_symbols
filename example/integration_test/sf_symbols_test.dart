@@ -1,6 +1,10 @@
 // End-to-end test against the real iOS plugin. Run with:
 //   flutter test integration_test -d <simulator id>
 
+import 'dart:ui' show ImageByteFormat;
+
+import 'package:crypto/crypto.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -280,6 +284,117 @@ void main() {
 
       await show(true);
       expect(tester.widget<Texture>(find.byType(Texture)).textureId, first);
+    });
+  });
+
+  group('effects', () {
+    setUp(() => SfSymbolCache.instance.clear());
+    tearDown(() => SfSymbolCache.instance.clear());
+
+    testWidgets('the running OS reports which effects it can play',
+        (tester) async {
+      final support = await SfSymbol.effectSupport();
+      // The tests run on iOS 17 or newer.
+      expect(support, isNot(SfSymbolEffectSupport.none));
+    });
+
+    testWidgets('every effect produces a texture', (tester) async {
+      for (final effect in SfSymbolEffect.values) {
+        final config = SfSymbolConfig(
+          name: 'wifi.router.fill',
+          size: 40,
+          colors: const [Color(0xFF2196F3)],
+          effect: effect,
+        );
+
+        final texture = await SfSymbolCache.instance.acquire(config);
+        expect(texture, isNotNull, reason: '$effect produced no texture');
+        expect(texture!.size.width, greaterThan(0), reason: '$effect');
+        SfSymbolCache.instance.release(config);
+      }
+    });
+
+    testWidgets('an animated symbol keeps producing new frames',
+        (tester) async {
+      const config = SfSymbolConfig(
+        name: 'wifi.router.fill',
+        size: 60,
+        colors: [Color(0xFF2196F3)],
+        effect: SfSymbolEffect.variableColor,
+      );
+
+      await tester.pumpWidget(
+        const Directionality(
+          textDirection: TextDirection.ltr,
+          child: Center(
+            child: RepaintBoundary(
+              child: SfSymbol(
+                name: 'wifi.router.fill',
+                size: 60,
+                color: Color(0xFF2196F3),
+                effect: SfSymbolEffect.variableColor,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+      expect(find.byType(Texture), findsOneWidget);
+
+      // Capture the composited output over time. A still symbol would give the
+      // same bytes every sample; an animating one must not.
+      final boundary = tester.renderObject<RenderRepaintBoundary>(
+        find.byType(RepaintBoundary).first,
+      );
+      final digests = <String>{};
+      for (var i = 0; i < 12; i++) {
+        final image = await boundary.toImage(pixelRatio: 1);
+        final bytes = await image.toByteData(format: ImageByteFormat.rawRgba);
+        digests.add(md5.convert(bytes!.buffer.asUint8List()).toString());
+        image.dispose();
+        await tester.pump(const Duration(milliseconds: 120));
+        await Future<void>.delayed(const Duration(milliseconds: 120));
+      }
+
+      expect(
+        digests.length,
+        greaterThan(1),
+        reason: 'the symbol effect never changed the rendered pixels',
+      );
+      expect(SfSymbolCache.instance.contains(config), isTrue);
+    });
+
+    testWidgets('an animated symbol is torn down when it leaves the tree',
+        (tester) async {
+      const config = SfSymbolConfig(
+        name: 'heart.fill',
+        size: 40,
+        colors: [Color(0xFFFF0000)],
+        effect: SfSymbolEffect.pulse,
+      );
+
+      await tester.pumpWidget(
+        const Directionality(
+          textDirection: TextDirection.ltr,
+          child: Center(
+            child: SfSymbol(
+              name: 'heart.fill',
+              size: 40,
+              color: Color(0xFFFF0000),
+              effect: SfSymbolEffect.pulse,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+      expect(SfSymbolCache.instance.contains(config), isTrue);
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpAndSettle();
+
+      // Never parked in the reuse pool: it would keep a display link running.
+      expect(SfSymbolCache.instance.contains(config), isFalse);
+      expect(SfSymbolCache.instance.unusedLength, 0);
     });
   });
 

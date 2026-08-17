@@ -23,6 +23,45 @@ enum SfSymbolRenderingMode {
   multicolor,
 }
 
+/// An SF Symbols animation, applied with `UIImageView.addSymbolEffect`.
+///
+/// Requires iOS 17, and [wiggle], [rotate] and [breathe] require iOS 18. A
+/// symbol asked for an effect the running OS does not have simply stays still.
+enum SfSymbolEffect {
+  /// A quick nudge, up by default.
+  bounce,
+
+  /// Fades the symbol's layers in and out.
+  pulse,
+
+  /// Lights the symbol's layers up in turn — signal strength, loading.
+  variableColor,
+
+  /// Scales the symbol up and holds it there.
+  scale,
+
+  /// Shakes the symbol side to side. Requires iOS 18.
+  wiggle,
+
+  /// Spins part of the symbol. Requires iOS 18.
+  rotate,
+
+  /// Swells and shrinks, slowly. Requires iOS 18.
+  breathe,
+}
+
+/// Which symbol effects the running OS version can play.
+enum SfSymbolEffectSupport {
+  /// iOS 18 or newer: every [SfSymbolEffect].
+  full,
+
+  /// iOS 17: everything except wiggle, rotate and breathe.
+  partial,
+
+  /// Older than iOS 17: symbols stay still.
+  none,
+}
+
 /// The symbol's size relative to its point size, i.e. `UIImage.SymbolScale`.
 ///
 /// This is independent of `size`: a `.small` 40pt symbol and a `.large` 40pt
@@ -47,6 +86,8 @@ class SfSymbolConfig {
     this.renderingMode = SfSymbolRenderingMode.monochrome,
     this.colors = const <Color>[],
     this.variableValue,
+    this.effect,
+    this.effectRepeats = true,
   });
 
   /// The SF Symbol name, e.g. `camera.aperture`.
@@ -73,6 +114,15 @@ class SfSymbolConfig {
   /// between 0.0 and 1.0. Requires iOS 16; ignored on earlier versions.
   final double? variableValue;
 
+  /// The animation to run, or null for a still symbol.
+  final SfSymbolEffect? effect;
+
+  /// Whether [effect] repeats, or plays once when the symbol appears.
+  final bool effectRepeats;
+
+  /// Whether this symbol animates, and so cannot be shared with others.
+  bool get isAnimated => effect != null;
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
@@ -83,6 +133,8 @@ class SfSymbolConfig {
         other.scale == scale &&
         other.renderingMode == renderingMode &&
         other.variableValue == variableValue &&
+        other.effect == effect &&
+        other.effectRepeats == effectRepeats &&
         listEquals(other.colors, colors);
   }
 
@@ -94,11 +146,13 @@ class SfSymbolConfig {
         scale,
         renderingMode,
         variableValue,
+        effect,
+        effectRepeats,
         Object.hashAll(colors),
       );
 
   @override
   String toString() => 'SfSymbolConfig($name, size: $size, '
       'weight: $weight, scale: $scale, mode: $renderingMode, '
-      'colors: $colors, variableValue: $variableValue)';
+      'colors: $colors, variableValue: $variableValue, effect: $effect)';
 }

@@ -126,6 +126,12 @@ class SfSymbolCache {
     if (entry.refCount > 0) return;
 
     entry.refCount = 0;
+    if (config.isAnimated) {
+      // An animating symbol keeps a display link running, so holding it for
+      // reuse would burn frames drawing something nobody is looking at.
+      _dispose(config);
+      return;
+    }
     _unused.add(config);
     _evict();
   }
