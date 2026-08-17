@@ -79,9 +79,9 @@ public class SfSymbolsPlugin: NSObject, FlutterPlugin {
 
         case "effectsSupported":
             if #available(iOS 18.0, *) {
-                result("18")
+                result("full")
             } else if #available(iOS 17.0, *) {
-                result("17")
+                result("partial")
             } else {
                 result("none")
             }

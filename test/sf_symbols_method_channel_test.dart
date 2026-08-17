@@ -220,6 +220,32 @@ void main() {
     });
   });
 
+  group('effectSupport', () {
+    test('reads the level the platform reports', () async {
+      for (final entry in const {
+        'full': SfSymbolEffectSupport.full,
+        'partial': SfSymbolEffectSupport.partial,
+        'none': SfSymbolEffectSupport.none,
+        // What 0.5.0's iOS side reported.
+        '18': SfSymbolEffectSupport.full,
+        '17': SfSymbolEffectSupport.partial,
+      }.entries) {
+        handler = (_) => entry.key;
+        expect(await platform.effectSupport(), entry.value,
+            reason: 'level ${entry.key}');
+      }
+      expect(log.first.method, 'effectsSupported');
+    });
+
+    test('reports none for an unknown level or a platform error', () async {
+      handler = (_) => 'something else';
+      expect(await platform.effectSupport(), SfSymbolEffectSupport.none);
+
+      handler = (_) => throw PlatformException(code: 'UNAVAILABLE');
+      expect(await platform.effectSupport(), SfSymbolEffectSupport.none);
+    });
+  });
+
   group('isAvailable', () {
     test('forwards the name and returns the answer', () async {
       handler = (_) => true;

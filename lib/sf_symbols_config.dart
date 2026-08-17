@@ -2,12 +2,12 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 
-/// How iOS applies color to a symbol.
+/// How the system applies color to a symbol.
 ///
 /// Mirrors the rendering modes described in
 /// [SF Symbols](https://developer.apple.com/design/human-interface-guidelines/sf-symbols).
 enum SfSymbolRenderingMode {
-  /// A single flat color. The default, and the only mode iOS applies to every
+  /// A single flat color. The default, and the only mode that applies to every
   /// symbol.
   monochrome,
 
@@ -23,10 +23,12 @@ enum SfSymbolRenderingMode {
   multicolor,
 }
 
-/// An SF Symbols animation, applied with `UIImageView.addSymbolEffect`.
+/// An SF Symbols animation, applied with UIKit's or AppKit's
+/// `addSymbolEffect`.
 ///
-/// Requires iOS 17, and [wiggle], [rotate] and [breathe] require iOS 18. A
-/// symbol asked for an effect the running OS does not have simply stays still.
+/// Requires iOS 17 or macOS 14, and [wiggle], [rotate] and [breathe] require
+/// iOS 18 or macOS 15. A symbol asked for an effect the running OS does not
+/// have simply stays still.
 enum SfSymbolEffect {
   /// A quick nudge, up by default.
   bounce,
@@ -40,25 +42,25 @@ enum SfSymbolEffect {
   /// Scales the symbol up and holds it there.
   scale,
 
-  /// Shakes the symbol side to side. Requires iOS 18.
+  /// Shakes the symbol side to side. Requires iOS 18 or macOS 15.
   wiggle,
 
-  /// Spins part of the symbol. Requires iOS 18.
+  /// Spins part of the symbol. Requires iOS 18 or macOS 15.
   rotate,
 
-  /// Swells and shrinks, slowly. Requires iOS 18.
+  /// Swells and shrinks, slowly. Requires iOS 18 or macOS 15.
   breathe,
 }
 
 /// Which symbol effects the running OS version can play.
 enum SfSymbolEffectSupport {
-  /// iOS 18 or newer: every [SfSymbolEffect].
+  /// iOS 18 or macOS 15 and newer: every [SfSymbolEffect].
   full,
 
-  /// iOS 17: everything except wiggle, rotate and breathe.
+  /// iOS 17 or macOS 14: everything except wiggle, rotate and breathe.
   partial,
 
-  /// Older than iOS 17: symbols stay still.
+  /// Older than that, or not an Apple platform: symbols stay still.
   none,
 }
 
@@ -111,7 +113,8 @@ class SfSymbolConfig {
   final List<Color> colors;
 
   /// Fill level for variable symbols such as `wifi` or `speaker.wave.3`,
-  /// between 0.0 and 1.0. Requires iOS 16; ignored on earlier versions.
+  /// between 0.0 and 1.0. Requires iOS 16 or macOS 13; ignored on earlier
+  /// versions.
   final double? variableValue;
 
   /// The animation to run, or null for a still symbol.

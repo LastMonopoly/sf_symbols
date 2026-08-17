@@ -1,6 +1,6 @@
 name: sf_symbols
-description: Use SF Symbols on iOS, same as Image(systemName:) or UIImage(systemName:) in Swift.
-version: 0.5.0
+description: Use SF Symbols on iOS and macOS, same as Image(systemName:) or UIImage(systemName:) in Swift.
+version: 0.6.0
 homepage: https://github.com/LastMonopoly/sf_symbols
 repository: https://github.com/LastMonopoly/sf_symbols
 issue_tracker: https://github.com/LastMonopoly/sf_symbols/issues
@@ -38,6 +38,8 @@ flutter:
     platforms:
       ios:
         pluginClass: SfSymbolsPlugin
+      macos:
+        pluginClass: SfSymbolsPlugin
 
   # To add assets to your plugin package, add an assets section, like this:
   # assets:
@@ -71,5 +73,7 @@ flutter:
   # https://flutter.dev/custom-fonts/#from-packages
 
 screenshots:
-  - description: "Symbol weights, scales, rendering modes, variable values and effects"
+  - description: "Symbol weights, scales, rendering modes, variable values and effects on iOS"
     path: screenshots/demo.png
+  - description: "The same symbols on macOS"
+    path: screenshots/demo-macos.png

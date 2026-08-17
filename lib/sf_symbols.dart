@@ -13,10 +13,10 @@ export 'sf_symbols_config.dart'
         SfSymbolRenderingMode,
         SfSymbolScale;
 
-/// Renders an SF Symbol natively on iOS.
+/// Renders an SF Symbol natively on iOS and macOS.
 ///
 /// The default constructor draws the symbol in a single flat [color]. The named
-/// constructors select the other rendering modes iOS supports:
+/// constructors select the other rendering modes the system supports:
 ///
 /// ```dart
 /// SfSymbol(name: 'camera', color: Colors.blue, size: 40)
@@ -26,7 +26,7 @@ export 'sf_symbols_config.dart'
 /// ```
 ///
 /// Nothing is drawn while the symbol loads, or if no symbol named [name] exists
-/// on the running iOS version.
+/// on the running OS version.
 class SfSymbol extends StatefulWidget {
   /// Draws the symbol in a single flat [color].
   const SfSymbol({
@@ -61,7 +61,7 @@ class SfSymbol extends StatefulWidget {
 
   /// Draws the symbol's layers in [colors], in order.
   ///
-  /// iOS uses up to three colors. A symbol with fewer layers than colors
+  /// Up to three colors are used. A symbol with fewer layers than colors
   /// ignores the extras.
   const SfSymbol.palette({
     super.key,
@@ -116,14 +116,16 @@ class SfSymbol extends StatefulWidget {
 
   /// Fill level for variable symbols such as `wifi`, between 0.0 and 1.0.
   ///
-  /// Requires iOS 16; earlier versions draw the symbol fully filled.
+  /// Requires iOS 16 or macOS 13; earlier versions draw the symbol fully
+  /// filled.
   final double? variableValue;
 
   /// The animation to run, or null for a still symbol.
   ///
-  /// Requires iOS 17, and some effects iOS 18; see [SfSymbolEffect]. Animating
-  /// symbols redraw every frame and are not shared with other widgets, so use
-  /// them where the motion means something rather than everywhere.
+  /// Requires iOS 17 or macOS 14, and some effects one version more; see
+  /// [SfSymbolEffect]. Animating symbols redraw every frame and are not shared
+  /// with other widgets, so use them where the motion means something rather
+  /// than everywhere.
   final SfSymbolEffect? effect;
 
   /// Whether [effect] repeats, or plays once when the symbol appears.
@@ -136,7 +138,7 @@ class SfSymbol extends StatefulWidget {
   /// Describes the symbol to accessibility tools such as VoiceOver.
   final String? semanticLabel;
 
-  /// Whether a symbol named [name] exists on the running iOS version.
+  /// Whether a symbol named [name] exists on the running OS version.
   static Future<bool> isAvailable(String name) =>
       SfSymbolsPlatform.instance.isAvailable(name);
 
@@ -145,7 +147,7 @@ class SfSymbol extends StatefulWidget {
   static Future<void> precache(SfSymbolConfig config) =>
       SfSymbolCache.instance.precache(config);
 
-  /// Which [SfSymbolEffect]s the running iOS version can play.
+  /// Which [SfSymbolEffect]s the running OS version can play.
   static Future<SfSymbolEffectSupport> effectSupport() =>
       SfSymbolsPlatform.instance.effectSupport();
 

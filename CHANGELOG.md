@@ -1,3 +1,15 @@
+## 0.6.0
+
+Adds macOS support.
+
+* Support macOS 12 and newer, with the same widget and the same API: rendering
+  modes, variable values, scale, accessibility and caching all work there.
+* Symbol effects on macOS need macOS 14, and wiggle, rotate and breathe need
+  macOS 15 — the same split as iOS 17 and 18. `SfSymbol.effectSupport()`
+  answers for whichever platform is running.
+* Fix a symbol drawing black on macOS where a multicolor symbol has no color
+  for a layer, or no multicolor variant at all. It now uses `color`, as on iOS.
+
 ## 0.5.0
 
 Adds animated symbol effects, and shares rendered symbols between widgets.

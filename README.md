@@ -1,9 +1,9 @@
 # sf_symbols
 
-<img src='https://raw.githubusercontent.com/LastMonopoly/sf_symbols/master/screenshots/demo.png?v=0.5.0' width=640 alt='The example app, showing symbol weights, scales, the four rendering modes, variable values and animated effects'>
+<img src='https://raw.githubusercontent.com/LastMonopoly/sf_symbols/master/screenshots/demo.png?v=0.5.0' width=640 alt='The example app on iOS, showing symbol weights, scales, the four rendering modes, variable values and animated effects'>
 
-Use [SF Symbols](https://developer.apple.com/sf-symbols/) on iOS, the same way you would use
-`Image(systemName:)` or `UIImage(systemName:)` in Swift.
+Use [SF Symbols](https://developer.apple.com/sf-symbols/) on iOS and macOS, the same way you would
+use `Image(systemName:)` or `UIImage(systemName:)` in Swift.
 
 ## Requirements
 
@@ -11,11 +11,12 @@ Use [SF Symbols](https://developer.apple.com/sf-symbols/) on iOS, the same way y
 | --- | --- |
 | Flutter | 3.27 or newer |
 | iOS | 15.0 or newer |
+| macOS | 12.0 or newer |
 | Build system | Swift Package Manager or CocoaPods |
 
-iOS only. On other platforms the widget draws nothing instead of failing, so it is safe to leave in
-a cross-platform tree — `SfSymbol.isAvailable` answers false there, and `SfSymbol.effectSupport`
-answers `none`.
+iOS and macOS only. On other platforms the widget draws nothing instead of failing, so it is safe to
+leave in a cross-platform tree — `SfSymbol.isAvailable` answers false there, and
+`SfSymbol.effectSupport` answers `none`.
 
 ## Usage
 
@@ -23,7 +24,7 @@ Use `SfSymbol` like any other widget, with a name, weight, color and size.
 
 `size` is the `pointSize` of [UIImage.SymbolConfiguration](https://developer.apple.com/documentation/uikit/uiimage/symbolconfiguration/3294242-init),
 so a symbol of size 40 renders roughly 40 x 40 logical pixels — the widget sizes itself to whatever
-iOS actually draws, which is rarely exactly square.
+the system actually draws, which is rarely exactly square.
 ```dart
 SfSymbol(
     name: 'camera.aperture',
@@ -34,7 +35,7 @@ SfSymbol(
 ```
 
 Names come from the [SF Symbols app](https://developer.apple.com/sf-symbols/). If a name does not
-exist on the running iOS version, the widget renders nothing rather than throwing. Check first with
+exist on the running OS version, the widget renders nothing rather than throwing. Check first with
 `await SfSymbol.isAvailable('camera.macro')` if you want to fall back to something else.
 
 The widget re-renders whenever its properties change, so a symbol can be tinted on press or swapped
@@ -65,7 +66,8 @@ SfSymbol.multicolor(name: 'cloud.sun.rain.fill', color: Colors.blue, size: 40)
 ### Variable symbols
 
 Symbols such as `wifi`, `speaker.wave.3` and `battery.100` draw a fill level from
-`variableValue`, between 0.0 and 1.0. Requires iOS 16; earlier versions draw the symbol full.
+`variableValue`, between 0.0 and 1.0. Requires iOS 16 or macOS 13; earlier versions draw the symbol
+full.
 
 ```dart
 SfSymbol(name: 'wifi', color: Colors.blue, size: 40, variableValue: 0.45)
@@ -99,10 +101,10 @@ SfSymbol(
 )
 ```
 
-`bounce`, `pulse`, `variableColor` and `scale` need iOS 17; `wiggle`, `rotate` and `breathe` need
-iOS 18. Asking for an effect the running iOS cannot play leaves the symbol still rather than
-failing, so no version check is required. `await SfSymbol.effectSupport()` reports what the device
-can play if you want to choose a different effect or hide a control.
+`bounce`, `pulse`, `variableColor` and `scale` need iOS 17 or macOS 14; `wiggle`, `rotate` and
+`breathe` need iOS 18 or macOS 15. Asking for an effect the running OS cannot play leaves the symbol
+still rather than failing, so no version check is required. `await SfSymbol.effectSupport()` reports
+what the device can play if you want to choose a different effect or hide a control.
 
 `effectRepeats: false` plays the effect once instead of looping. That only applies to the effects
 that have a natural end — `bounce`, and one cycle of `variableColor`. `pulse`, `wiggle`, `rotate`
@@ -134,26 +136,38 @@ are different images. `someSymbol.config` gives you the config of an `SfSymbol` 
 apps that want to tune the off-screen pool or drop it under memory pressure. Animated symbols are
 never pooled: keeping one alive would keep its display link running.
 
+### macOS
+
+<img src='https://raw.githubusercontent.com/LastMonopoly/sf_symbols/master/screenshots/demo-macos.png?v=0.6.0' width=420 alt='The same example app running on macOS'>
+
+The same widget, the same API. Two differences come from AppKit rather than from this package:
+
+- Symbols are drawn with `NSFont.Weight`, so a `FontWeight` maps to the nearest of the nine AppKit
+  weights, exactly as it maps to `UIImage.SymbolWeight` on iOS.
+- A multicolor symbol whose variant leaves a layer uncolored is drawn in `color` on both platforms,
+  but on macOS that takes an extra pass: AppKit paints those layers black and offers no way to say
+  otherwise through a symbol configuration.
+
 ## How it works
 
-iOS renders the symbol into a pixel buffer, which Flutter draws as a
+The system renders the symbol into a pixel buffer, which Flutter draws as a
 [`Texture`](https://api.flutter.dev/flutter/widgets/Texture-class.html). The symbols are the real
-ones from the system, at whatever version of the SF Symbols set the device ships, and an animated
-symbol is a UIKit symbol effect with its frames pushed into the texture.
+ones, at whatever version of the SF Symbols set the machine ships, and an animated symbol is a
+UIKit or AppKit symbol effect with its frames pushed into the texture.
 
 ## Running the example
 
 ```sh
 cd example
-flutter run -d <ios simulator or device>
+flutter run -d macos                       # or an iOS simulator or device
 ```
 
-The end-to-end tests exercise the native side and need a real simulator or device:
+The end-to-end tests exercise the native side, so they need a real device — the Mac counts as one:
 
 ```sh
 cd example
-flutter test integration_test -d <ios simulator or device>
+flutter test integration_test -d macos     # and again with an iOS device id
 ```
 
 ## Roadmap
-- Support for macOS
+- Dynamic Type, so symbols follow the system text size

@@ -86,8 +86,10 @@ class MethodChannelSfSymbols extends SfSymbolsPlatform {
     try {
       final level = await methodChannel.invokeMethod<String>('effectsSupported');
       return switch (level) {
-        '18' => SfSymbolEffectSupport.full,
-        '17' => SfSymbolEffectSupport.partial,
+        // '18' and '17' are what 0.5.0's iOS side reported, kept in case a
+        // stale build of it is paired with this Dart code.
+        'full' || '18' => SfSymbolEffectSupport.full,
+        'partial' || '17' => SfSymbolEffectSupport.partial,
         _ => SfSymbolEffectSupport.none,
       };
     } catch (e) {

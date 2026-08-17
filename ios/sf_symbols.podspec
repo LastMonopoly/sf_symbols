@@ -4,10 +4,10 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'sf_symbols'
-  s.version          = '0.5.0'
-  s.summary          = 'Use SF Symbols on iOS.'
+  s.version          = '0.6.0'
+  s.summary          = 'Use SF Symbols on iOS and macOS.'
   s.description      = <<-DESC
-Use SF Symbols on iOS, same as Image(systemName:) or UIImage(systemName:) in Swift.
+Use SF Symbols on iOS and macOS, same as Image(systemName:) or UIImage(systemName:) in Swift.
                        DESC
   s.homepage         = 'https://github.com/LastMonopoly/sf_symbols'
   s.license          = { :file => '../LICENSE' }
