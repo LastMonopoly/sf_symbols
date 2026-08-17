@@ -1,21 +1,21 @@
 name: sf_symbols
 description: Use SF Symbols on iOS, same as Image(systemName:) or UIImage(systemName:) in Swift.
-version: 0.2.0
+version: 0.3.0
 homepage: https://github.com/LastMonopoly/sf_symbols
 
 environment:
-  sdk: ">=2.19.6 <3.0.0"
-  flutter: ">=2.5.0"
+  sdk: ">=3.6.0 <4.0.0"
+  flutter: ">=3.27.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  plugin_platform_interface: ^2.0.2
+  plugin_platform_interface: ^2.1.8
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.0
+  flutter_lints: ^6.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

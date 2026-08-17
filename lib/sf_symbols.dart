@@ -33,7 +33,7 @@ class _SfSymbolState extends State<SfSymbol> {
   int? symbolTextureId;
   Size? symbolSize;
 
-  initSymbol() async {
+  Future<void> initSymbol() async {
     symbolTextureId = await SfSymbolsPlatform.instance.init(
       name: widget.name,
       weight: widget.weight,
@@ -49,7 +49,7 @@ class _SfSymbolState extends State<SfSymbol> {
   }
 
   @override
-  dispose() {
+  void dispose() {
     if (symbolTextureId != null) {
       SfSymbolsPlatform.instance.dispose(symbolTextureId!);
     }

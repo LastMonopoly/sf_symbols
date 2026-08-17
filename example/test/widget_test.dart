@@ -1,27 +1,23 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// Widget test for the example app. The plugin itself needs a real iOS device
+// or simulator, so this only checks that the demo builds and toggles.
+// See integration_test/ for the end-to-end test that renders actual symbols.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sf_symbols/sf_symbols.dart';
 
 import 'package:sf_symbols_example/main.dart';
 
 void main() {
-  testWidgets('Verify Platform version', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+  testWidgets('shows a grid of symbols and hides it on tap', (tester) async {
     await tester.pumpWidget(const MyApp());
 
-    // Verify that platform version is retrieved.
-    expect(
-      find.byWidgetPredicate(
-        (Widget widget) => widget is Text &&
-                           widget.data!.startsWith('Running on:'),
-      ),
-      findsOneWidget,
-    );
+    expect(find.text('SF Symbols'), findsOneWidget);
+    expect(find.byType(SfSymbol), findsWidgets);
+
+    await tester.tap(find.byType(GestureDetector));
+    await tester.pump();
+
+    expect(find.byType(SfSymbol), findsNothing);
   });
 }

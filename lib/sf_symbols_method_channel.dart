@@ -19,17 +19,17 @@ class MethodChannelSfSymbols extends SfSymbolsPlatform {
     required double size,
   }) async {
     final hexColor =
-        color.value.toRadixString(16).padLeft(8, '0').toUpperCase();
+        color.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase();
 
     try {
-      final result = await methodChannel.invokeMethod('init', {
+      final result = await methodChannel.invokeMapMethod('init', {
         'name': name,
-        'weight': weight.index + 1,
+        'weight': weight.value ~/ 100,
         'color': '#$hexColor',
         'size': size,
       });
 
-      return result[idKey];
+      return (result?[idKey] as num?)?.toInt();
     } catch (e) {
       if (kDebugMode) print('SfSymbols init: $e');
       return null;
@@ -56,7 +56,7 @@ class MethodChannelSfSymbols extends SfSymbolsPlatform {
   }
 
   @override
-  Future dispose(int textureId) async {
+  Future<void> dispose(int textureId) async {
     try {
       await methodChannel.invokeMethod('dispose', {
         idKey: textureId,
