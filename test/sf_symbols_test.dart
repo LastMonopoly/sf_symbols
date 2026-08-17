@@ -43,6 +43,16 @@ void main() {
     setUp(() {
       fake = FakeSfSymbolsPlatform();
       SfSymbolsPlatform.instance = fake;
+      // The cache is a singleton, so reset it between tests. Keeping nothing
+      // unused makes these tests assert on disposal directly; the caching
+      // behaviour itself is covered below and in sf_symbols_cache_test.dart.
+      SfSymbolCache.instance.clear();
+      SfSymbolCache.instance.maximumUnusedEntries = 0;
+    });
+
+    tearDown(() {
+      SfSymbolCache.instance.clear();
+      SfSymbolCache.instance.maximumUnusedEntries = 48;
     });
 
     Widget wrap(Widget child) => Directionality(
@@ -317,6 +327,76 @@ void main() {
           ).config,
           throwsAssertionError,
         );
+      });
+    });
+
+    group('sharing', () {
+      testWidgets('identical symbols share one native texture', (tester) async {
+        await tester.pumpWidget(wrap(const Row(
+          children: [
+            SfSymbol(name: 'camera', color: Color(0xFF000000), size: 40),
+            SfSymbol(name: 'camera', color: Color(0xFF000000), size: 40),
+            SfSymbol(name: 'camera', color: Color(0xFF000000), size: 40),
+          ],
+        )));
+        await tester.pumpAndSettle();
+
+        final ids = tester
+            .widgetList<Texture>(find.byType(Texture))
+            .map((texture) => texture.textureId)
+            .toSet();
+
+        expect(find.byType(Texture), findsNWidgets(3));
+        expect(ids, hasLength(1), reason: 'one image, one texture');
+        expect(fake.initialized, hasLength(1));
+      });
+
+      testWidgets('a cached symbol draws on its very first frame',
+          (tester) async {
+        SfSymbolCache.instance.maximumUnusedEntries = 8;
+        await SfSymbol.precache(const SfSymbolConfig(
+          name: 'camera',
+          size: 40,
+          colors: [Color(0xFF000000)],
+        ));
+
+        await tester.pumpWidget(wrap(const SfSymbol(
+          name: 'camera',
+          color: Color(0xFF000000),
+          size: 40,
+        )));
+
+        // No pumpAndSettle: an already rendered symbol must not cost a frame
+        // of empty space.
+        expect(find.byType(Texture), findsOneWidget);
+      });
+
+      testWidgets('a symbol still on screen is never disposed', (tester) async {
+        SfSymbolCache.instance.maximumUnusedEntries = 0;
+
+        await tester.pumpWidget(wrap(const Row(
+          children: [
+            SfSymbol(name: 'camera', color: Color(0xFF000000), size: 40),
+            SfSymbol(name: 'camera', color: Color(0xFF000000), size: 40),
+          ],
+        )));
+        await tester.pumpAndSettle();
+
+        // Drop one of the two.
+        await tester.pumpWidget(wrap(const Row(
+          children: [
+            SfSymbol(name: 'camera', color: Color(0xFF000000), size: 40),
+          ],
+        )));
+        await tester.pumpAndSettle();
+
+        expect(fake.disposed, isEmpty, reason: 'the other one still shows it');
+        expect(find.byType(Texture), findsOneWidget);
+
+        await tester.pumpWidget(wrap(const SizedBox()));
+        await tester.pumpAndSettle();
+
+        expect(fake.disposed, [1]);
       });
     });
 

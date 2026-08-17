@@ -190,6 +190,99 @@ void main() {
     expect(second, isNot(first));
   });
 
+  group('cache', () {
+    setUp(() {
+      SfSymbolCache.instance.clear();
+      SfSymbolCache.instance.maximumUnusedEntries = 48;
+    });
+    tearDown(() => SfSymbolCache.instance.clear());
+
+    testWidgets('a list of identical symbols registers one native texture',
+        (tester) async {
+      await tester.pumpWidget(
+        const Directionality(
+          textDirection: TextDirection.ltr,
+          child: _Grid(count: 60),
+        ),
+      );
+      await tester.pumpAndSettle(const Duration(seconds: 2));
+
+      final textures = tester.widgetList<Texture>(find.byType(Texture));
+      expect(textures, hasLength(60));
+
+      // Before caching this cost 60 native textures and 60 pixel buffers.
+      expect(
+        textures.map((texture) => texture.textureId).toSet(),
+        hasLength(1),
+        reason: '60 copies of one symbol must share a single texture',
+      );
+      expect(SfSymbolCache.instance.length, 1);
+    });
+
+    testWidgets('a precached symbol draws on its first frame', (tester) async {
+      const config = SfSymbolConfig(
+        name: 'bolt.fill',
+        size: 40,
+        colors: [Color(0xFF00FF00)],
+      );
+      await SfSymbol.precache(config);
+      expect(SfSymbolCache.instance.contains(config), isTrue);
+
+      await tester.pumpWidget(
+        const Directionality(
+          textDirection: TextDirection.ltr,
+          child: Center(
+            child: SfSymbol(
+              name: 'bolt.fill',
+              color: Color(0xFF00FF00),
+              size: 40,
+            ),
+          ),
+        ),
+      );
+
+      // No settle: the symbol is already rendered, so it must appear at once.
+      expect(find.byType(Texture), findsOneWidget);
+    });
+
+    testWidgets('a symbol scrolled away is reused rather than re-rendered',
+        (tester) async {
+      const config = SfSymbolConfig(
+        name: 'star.fill',
+        size: 40,
+        colors: [Color(0xFFFFAA00)],
+      );
+
+      Future<void> show(bool visible) async {
+        await tester.pumpWidget(
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: Center(
+              child: visible
+                  ? const SfSymbol(
+                      name: 'star.fill',
+                      color: Color(0xFFFFAA00),
+                      size: 40,
+                    )
+                  : const SizedBox(),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle(const Duration(seconds: 1));
+      }
+
+      await show(true);
+      final first = tester.widget<Texture>(find.byType(Texture)).textureId;
+
+      await show(false);
+      // Kept for reuse rather than torn down.
+      expect(SfSymbolCache.instance.contains(config), isTrue);
+
+      await show(true);
+      expect(tester.widget<Texture>(find.byType(Texture)).textureId, first);
+    });
+  });
+
   testWidgets('the demo app re-renders its symbols when the tint changes',
       (tester) async {
     List<int> textureIds() => tester
@@ -216,4 +309,20 @@ void main() {
     expect(reused, hasLength(4),
         reason: 'only the tint-independent palette symbols may be reused');
   });
+}
+
+class _Grid extends StatelessWidget {
+  const _Grid({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      children: [
+        for (var i = 0; i < count; i++)
+          const SfSymbol(name: 'heart.fill', color: Color(0xFFFF0000), size: 20),
+      ],
+    );
+  }
 }

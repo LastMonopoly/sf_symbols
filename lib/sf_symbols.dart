@@ -1,8 +1,10 @@
 import 'package:flutter/widgets.dart';
 
+import 'sf_symbols_cache.dart';
 import 'sf_symbols_config.dart';
 import 'sf_symbols_platform_interface.dart';
 
+export 'sf_symbols_cache.dart' show SfSymbolCache, SfSymbolTexture;
 export 'sf_symbols_config.dart'
     show SfSymbolConfig, SfSymbolRenderingMode, SfSymbolScale;
 
@@ -111,6 +113,11 @@ class SfSymbol extends StatefulWidget {
   static Future<bool> isAvailable(String name) =>
       SfSymbolsPlatform.instance.isAvailable(name);
 
+  /// Renders a symbol ahead of time, so a widget showing it draws without the
+  /// frame of empty space a first render would otherwise leave.
+  static Future<void> precache(SfSymbolConfig config) =>
+      SfSymbolCache.instance.precache(config);
+
   SfSymbolConfig get config {
     final colors = this.colors;
     assert(
@@ -135,91 +142,95 @@ class SfSymbol extends StatefulWidget {
 }
 
 class _SfSymbolState extends State<SfSymbol> {
-  int? _textureId;
-  Size? _symbolSize;
+  /// The config this widget holds a cache reference for, if any.
+  SfSymbolConfig? _held;
+  SfSymbolTexture? _texture;
 
   /// Incremented for every load, so a slow load that has been superseded — or
-  /// that finishes after this widget is gone — cleans up instead of committing.
+  /// that finishes after this widget is gone — releases instead of committing.
   int _generation = 0;
 
   @override
   void initState() {
     super.initState();
-    _load();
+    _start();
   }
 
   @override
   void didUpdateWidget(SfSymbol oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.config != oldWidget.config) _load();
+    if (widget.config != oldWidget.config) _start();
   }
 
   @override
   void dispose() {
     _generation++;
-    final textureId = _textureId;
-    if (textureId != null) SfSymbolsPlatform.instance.dispose(textureId);
+    final held = _held;
+    _held = null;
+    if (held != null) SfSymbolCache.instance.release(held);
     super.dispose();
   }
 
-  Future<void> _load() async {
-    final platform = SfSymbolsPlatform.instance;
+  void _start() {
+    final config = widget.config;
     final generation = ++_generation;
+    final cache = SfSymbolCache.instance;
 
-    final textureId = await platform.init(widget.config);
-    if (textureId == null) {
-      if (generation == _generation && mounted) _clear();
+    // A symbol another widget already rendered is handed over right away. A
+    // build always follows initState and didUpdateWidget, so assigning here
+    // is enough — and it spares the frame of empty space an async load costs.
+    final cached = cache.acquireCached(config);
+    if (cached != null) {
+      _swap(config, cached);
       return;
     }
 
-    final symbolSize = await platform.render(textureId);
-    // Superseded by a newer load, or the widget is gone: drop what we made.
-    if (generation != _generation || !mounted) {
-      platform.dispose(textureId);
-      return;
-    }
-    if (symbolSize == null) {
-      platform.dispose(textureId);
-      _clear();
-      return;
-    }
-
-    // Swap first, then release the old texture, so the symbol never blinks.
-    final previous = _textureId;
-    setState(() {
-      _textureId = textureId;
-      _symbolSize = symbolSize;
-    });
-    if (previous != null) platform.dispose(previous);
+    _load(config, generation, cache);
   }
 
-  void _clear() {
-    final previous = _textureId;
-    if (previous == null && _symbolSize == null) return;
-    setState(() {
-      _textureId = null;
-      _symbolSize = null;
-    });
-    if (previous != null) SfSymbolsPlatform.instance.dispose(previous);
+  Future<void> _load(
+    SfSymbolConfig config,
+    int generation,
+    SfSymbolCache cache,
+  ) async {
+    final texture = await cache.acquire(config);
+
+    // Superseded by a newer load, or the widget is gone: give the reference
+    // back rather than holding a symbol nobody is showing.
+    if (generation != _generation || !mounted) {
+      if (texture != null) cache.release(config);
+      return;
+    }
+
+    setState(() => _swap(config, texture));
+  }
+
+  /// Adopts [texture] and releases whatever was held before, in that order, so
+  /// a symbol shared between the two configs never blinks.
+  void _swap(SfSymbolConfig config, SfSymbolTexture? texture) {
+    final previous = _held;
+    _held = texture == null ? null : config;
+    _texture = texture;
+    if (previous != null) SfSymbolCache.instance.release(previous);
   }
 
   @override
   Widget build(BuildContext context) {
-    final textureId = _textureId;
-    final symbolSize = _symbolSize;
+    final texture = _texture;
 
     Widget child;
-    if (textureId != null && symbolSize != null) {
+    if (texture != null) {
+      final symbolSize = texture.size;
       child = LayoutBuilder(builder: (context, constraints) {
         if (constraints.isSatisfiedBy(symbolSize)) {
           return SizedBox.fromSize(
             size: symbolSize,
-            child: Texture(textureId: textureId),
+            child: Texture(textureId: texture.textureId),
           );
         }
         return AspectRatio(
           aspectRatio: symbolSize.aspectRatio,
-          child: Texture(textureId: textureId),
+          child: Texture(textureId: texture.textureId),
         );
       });
     } else {
