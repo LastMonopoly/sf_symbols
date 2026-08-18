@@ -1,6 +1,6 @@
 name: sf_symbols
 description: Use SF Symbols on iOS and macOS, same as Image(systemName:) or UIImage(systemName:) in Swift.
-version: 0.6.0
+version: 0.6.1
 homepage: https://github.com/LastMonopoly/sf_symbols
 repository: https://github.com/LastMonopoly/sf_symbols
 issue_tracker: https://github.com/LastMonopoly/sf_symbols/issues

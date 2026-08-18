@@ -1,3 +1,9 @@
+## 0.6.1
+
+Documentation only.
+
+* Add a sponsor section to the README.
+
 ## 0.6.0
 
 Adds macOS support.
