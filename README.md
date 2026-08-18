@@ -5,6 +5,13 @@
 Use [SF Symbols](https://developer.apple.com/sf-symbols/) on iOS and macOS, the same way you would
 use `Image(systemName:)` or `UIImage(systemName:)` in Swift.
 
+## Sponsor
+
+<a href='https://pangzhengboyin.com/?utm_source=pubdev&utm_medium=sponsorship&utm_campaign=flutter_packages&utm_content=sf_symbols_readme_banner'><img src='https://raw.githubusercontent.com/LastMonopoly/sf_symbols/master/sponsors/pangzhengboyin.png' width=640 alt='庞征博引 — 想学的，慢慢都会'></a>
+
+This package is sponsored by [庞征博引](https://pangzhengboyin.com/?utm_source=pubdev&utm_medium=sponsorship&utm_campaign=flutter_packages&utm_content=sf_symbols_readme_text), which breaks complex
+subjects into 5–10 minute reads you work through, and ask questions about, at your own pace.
+
 ## Requirements
 
 | | |
